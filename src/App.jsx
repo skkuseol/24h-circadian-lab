@@ -20,8 +20,6 @@ function Button({ className = "", children, ...props }) {
 }
 
 const completePublications = [
-  "Lee J, Seol J, Naruto T, Cao Y, Kinashi Y, Ushirooka N, Tanigawa S, Nakamura S, Nomura Y, Nishikubo E, Kokubo T, Okura T, Yanagisawa M. Modality- and intensity-specific effects of evening exercise on sleep and fatigue recovery. Sleep, under review.",
-  "Nagata K, Tsunoda K, Fujii Y, Seol J, Jindo T, Shibuya K, Okura T. Type of exercise and risk of developing dementia in older Japanese community-dwelling adults. Geriatrics & Gerontology International, under review.",
   "Cao Y, Lee J, Seol J, Tsunoda K, Shibuya K, Yoon J, Arai T, Okura T. Dose-response relationship between sleep regularity index and stage-specific Alzheimer’s Disease. Geriatrics, 2026;11(2):32.",
   "Ariyada K, Iwagami M, Yamagishi K, Seol J, Yanagisawa M. A review of sleep-related indicators measured in large population-based cohort studies in Japan. Environmental Health and Preventive Medicine, 2026;31:28.",
   "Uchiyama A, Kamimura H, Miida S, Maruyama H, Tonouchi T, Seol J, Kokubo T, Okura T, Watanabe Y, Kumura N, Abe H, Sakamaki A, Yokoo T, Terai S. Severe, unrecognized sleep disturbances in patients with cirrhosis diagnosed with a portable EEG device. BMJ Health & Care Informatics, 2026;33(1):e101526.",

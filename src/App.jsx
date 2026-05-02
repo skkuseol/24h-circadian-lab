@@ -165,14 +165,14 @@ const copy = {
     grantsTitle: "Research Grants",
     awardsTitle: "Awards & Honors",
     grants: [
-      "JST Next-Generation Human Resource Development Support (PI, JPY 4,000,000, 2025–present)",
-      "ARIHHP, University of Tsukuba (PI, JPY 280,000, 2024–2025)",
-      "University of Tsukuba Research Continuation Grant (PI, JPY 170,000, 2024–present)",
-      "JSPS Grant-in-Aid for JSPS Fellows (PI, JPY 3,000,000, 2021–2023)",
-      "JSPS Research Activity Start-up (PI, JPY 1,100,000, 2020–2021)",
-      "Univers Foundation (PI, JPY 1,000,000, 2019–2020)",
-      "Sasakawa Sports Foundation (PI, JPY 340,000, 2019–2020)",
-      "Meiji Yasuda Foundation (PI, JPY 500,000, 2018–2019)"
+      "JST Next-Generation Human Resource Development Support",
+      "ARIHHP, University of Tsukuba",
+      "University of Tsukuba Research Continuation Grant",
+      "JSPS Grant-in-Aid for JSPS Fellows",
+      "JSPS Research Activity Start-up",
+      "Univers Foundation",
+      "Sasakawa Sports Foundation",
+      "Meiji Yasuda Foundation"
     ],
     awards: [
       "BRIC Scientist of Korea (2025)",
@@ -279,14 +279,14 @@ const copy = {
     grantsTitle: "연구비",
     awardsTitle: "수상 및 선정",
     grants: [
-      "JST Next-Generation Human Resource Development Support (책임연구자, JPY 4,000,000, 2025–현재)",
-      "ARIHHP, University of Tsukuba (책임연구자, JPY 280,000, 2024–2025)",
-      "University of Tsukuba Research Continuation Grant (책임연구자, JPY 170,000, 2024–현재)",
-      "JSPS Grant-in-Aid for JSPS Fellows (책임연구자, JPY 3,000,000, 2021–2023)",
-      "JSPS Research Activity Start-up (책임연구자, JPY 1,100,000, 2020–2021)",
-      "The Univers Foundation Research Grant (책임연구자, JPY 1,000,000, 2019–2020)",
-      "Sasakawa Sports Foundation Research Grant (책임연구자, JPY 340,000, 2019–2020)",
-      "Meiji Yasuda Foundation of Health and Welfare Research Grant (책임연구자, JPY 500,000, 2018–2019)"
+      "JST Next-Generation Human Resource Development Support",
+      "ARIHHP, University of Tsukuba",
+      "University of Tsukuba Research Continuation Grant",
+      "JSPS Grant-in-Aid for JSPS Fellows",
+      "JSPS Research Activity Start-up",
+      "The Univers Foundation Research Grant",
+      "Sasakawa Sports Foundation Research Grant",
+      "Meiji Yasuda Foundation of Health and Welfare Research Grant"
     ],
     awards: [
       "한국을 빛내는 사람들, 한국생물학 연구정보센터 BRIC (2025)",

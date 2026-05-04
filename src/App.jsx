@@ -469,7 +469,40 @@ function PageShell({ label, title, intro, children }) {
     </motion.section>
   );
 }
+function NewsSection({ t, s, theme }) {
+  return (
+    <motion.section
+      className="mt-20 text-left"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.18 }}
+    >
+      <p className={`text-sm font-semibold uppercase tracking-[0.3em] ${theme === "night" ? "text-cyan-200" : "text-slate-600"}`}>
+        {t.newsLabel}
+      </p>
+      <h3 className="mt-3 text-3xl font-extrabold md:text-5xl">
+        {t.newsTitle}
+      </h3>
 
+      <div className="mt-8 grid gap-5 md:grid-cols-3">
+        {t.newsItems.map((item) => (
+          <Card key={`${item.date}-${item.title}`} className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+            <CardContent className="p-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}>
+                  {item.category}
+                </span>
+                <span className="text-xs opacity-70">{item.date}</span>
+              </div>
+              <h4 className="text-lg font-extrabold leading-7">{item.title}</h4>
+              <p className="mt-3 text-sm leading-6 opacity-80">{item.text}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
 function HomePage({ theme, setTheme, t, s, setPage }) {
   const active = t.theme[theme];
   return (
@@ -487,6 +520,7 @@ function HomePage({ theme, setTheme, t, s, setPage }) {
           </div>
         </motion.div>
         <RhythmToggle theme={theme} setTheme={setTheme} t={t} s={s} />
+        <NewsSection t={t} s={s} theme={theme} />
         <motion.div className="mt-20 text-left" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <p className={`text-sm font-semibold uppercase tracking-[0.3em] ${theme === "night" ? "text-cyan-200" : "text-slate-600"}`}>{t.homeResearchLabel}</p>
           <h3 className="mt-3 max-w-3xl text-3xl font-extrabold md:text-5xl">{t.homeResearchTitle}</h3>

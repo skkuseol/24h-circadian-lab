@@ -102,6 +102,28 @@ const copy = {
       viewPublications: "View Publications",
       chooseConcept: "Choose your rhythm"
     },
+    newsLabel: "Latest News",
+    newsTitle: "Updates from the lab",
+    newsItems: [
+      {
+        date: "May 2026",
+        category: "Event",
+        title: "The 24h-Circadian & Health Promotion Lab website is now live.",
+        text: "Our lab website has officially launched with information on research platforms, publications, collaborators, and contact details."
+      },
+      {
+        date: "May 2026",
+        category: "Collaboration",
+        title: "SKKU–FSU collaborative research proposal is in development.",
+        text: "We are developing a joint research project using large-scale accelerometry and cardiometabolic health data."
+      },
+      {
+        date: "May 2026",
+        category: "Member",
+        title: "Graduate students and research interns are welcome.",
+        text: "We are open to motivated students interested in sleep, physical activity, circadian rhythm, digital health, and explainable AI."
+      }
+    ],
     homeResearchLabel: "What We Study",
     homeResearchTitle: "Research at the intersection of sleep, behavior, and data.",
     homeResearchIntro: "We study how daily movement behaviors, sleep physiology, and circadian rhythm interact across the 24-hour day to shape health, recovery, and human performance.",
@@ -216,6 +238,28 @@ const copy = {
       viewPublications: "논문 보기",
       chooseConcept: "나의 리듬 선택하기"
     },
+    newsLabel: "Latest News",
+    newsTitle: "연구실 소식",
+    newsItems: [
+      {
+        date: "2026년 5월",
+        category: "Event",
+        title: "24h-Circadian & Health Promotion Lab 홈페이지를 공개했습니다.",
+        text: "연구 주제, 데이터 플랫폼, 논문 및 연구업적, 협력기관, 연락처 정보를 담은 연구실 홈페이지를 공식적으로 공개했습니다."
+      },
+      {
+        date: "2026년 5월",
+        category: "Collaboration",
+        title: "SKKU–FSU 공동연구 제안서를 준비 중입니다.",
+        text: "대규모 가속도계 자료와 심혈관대사 건강지표를 활용한 공동연구를 구상하고 있습니다."
+      },
+      {
+        date: "2026년 5월",
+        category: "Member",
+        title: "대학원생 및 연구인턴을 모집합니다.",
+        text: "수면, 신체활동, 생체리듬, 디지털 헬스, 설명가능한 AI에 관심 있는 학생들의 참여를 환영합니다."
+      }
+    ],
     homeResearchLabel: "주요 연구",
     homeResearchTitle: "수면, 행동, 데이터가 만나는 지점에서 연구합니다.",
     homeResearchIntro: "본 연구실은 24시간 하루 안에서 신체활동, 좌식행동, 수면생리, 생체리듬이 건강, 회복, 수행능력에 어떤 영향을 미치는지 연구합니다.",

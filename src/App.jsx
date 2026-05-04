@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@sanity/client";
 import { motion } from "framer-motion";
 function Card({ className = "", children }) {
   return <div className={className}>{children}</div>;
@@ -18,6 +19,12 @@ function Button({ className = "", children, ...props }) {
     </button>
   );
 }
+const sanityClient = createClient({
+  projectId: "hzkj8uhi",
+  dataset: "production",
+  apiVersion: "2026-05-04",
+  useCdn: true,
+});
 
 const completePublications = [
   "Cao Y, Lee J, Seol J, Tsunoda K, Shibuya K, Yoon J, Arai T, Okura T. Dose-response relationship between sleep regularity index and stage-specific Alzheimer’s Disease. Geriatrics, 2026;11(2):32.",
@@ -701,7 +708,35 @@ export default function LabWebsite() {
   const [theme, setTheme] = useState("night");
   const [lang, setLang] = useState("en");
   const [page, setPage] = useState("home");
-  const t = copy[lang];
+  const [sanityNews, setSanityNews] = useState([]);
+
+  useEffect(() => {
+    sanityClient
+      .fetch(`*[_type == "news"] | order(date desc) {
+        date,
+        category,
+        titleEn,
+        titleKo,
+        textEn,
+        textKo
+      }`)
+      .then(setSanityNews)
+      .catch(console.error);
+  }, []);
+
+  const t = {
+    ...copy[lang],
+    newsItems:
+      sanityNews.length > 0
+        ? sanityNews.map((item) => ({
+           date: item.date,
+           category: item.category,
+           title: lang === "ko" ? item.titleKo : item.titleEn,
+           text: lang === "ko" ? item.textKo : item.textEn,
+          }))
+        : copy[lang].newsItems,
+  };
+
   const s = themes[theme] || themes.night;
 
   const renderPage = () => {

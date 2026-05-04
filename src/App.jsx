@@ -23,7 +23,8 @@ const sanityClient = createClient({
   projectId: "hzkj8uhi",
   dataset: "production",
   apiVersion: "2026-05-04",
-  useCdn: true,
+  useCdn: false,
+  perspective: "published",
 });
 
 const completePublications = [
@@ -554,14 +555,16 @@ function HomePage({ theme, setTheme, t, s, setPage }) {
   );
 }
 
-function MembersPage({ t, s, theme, setPage }) {
+function MembersPage({ t, s, theme, setPage, members, lang, setSelectedMember }) {
   const recruitingText = t.home === "Home" ? "Open Positions · Graduate Students · Research Interns" : "대학원생 · 연구인턴 · 공동연구원 모집 중";
   return (
     <PageShell label={t.nav.members} title={t.membersTitle} intro={t.membersIntro}>
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div whileHover={{ y: -6 }}>
-          <button type="button" onClick={() => setPage("profile")} className="block w-full text-left">
-            <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+
+  <button type="button" onClick={() => setPage("profile")} className="block w-full text-left">
+
+    <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
               <CardContent className="p-8 text-center">
                 <div className={`mx-auto mb-5 flex h-28 w-28 items-center justify-center rounded-full ${s.soft}`}>{theme === "day" ? <SunIcon className="h-10 w-10" /> : <MoonIcon className="h-10 w-10 text-cyan-200" />}</div>
                 <div className={`mb-3 inline-flex rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}>PI</div>
@@ -571,8 +574,67 @@ function MembersPage({ t, s, theme, setPage }) {
                 <p className="mt-4 text-xs uppercase tracking-[0.25em] opacity-60">View Profile</p>
               </CardContent>
             </Card>
+
+  </button>
+
+</motion.div>
+
+        {members && members.map((member) => (
+  <motion.div key={member._id} whileHover={{ y: -6 }}>
+    <button
+      type="button"
+      onClick={() => {
+        setSelectedMember(member);
+        setPage("memberProfile");
+      }}
+      className="block w-full text-left"
+    >
+      <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+              <CardContent className="p-8 text-center">
+
+                <div className={`mx-auto mb-5 h-28 w-28 overflow-hidden rounded-full ${s.soft}`}>
+                  {member.photoUrl ? (
+                    <img
+                      src={member.photoUrl}
+                      alt={member.nameEn}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      {theme === "day"
+                        ? <SunIcon className="h-10 w-10" />
+                        : <MoonIcon className="h-10 w-10 text-cyan-200" />}
+                    </div>
+                  )}
+                </div>
+
+                <div className={`mb-3 inline-flex rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}>
+                  {member.role || "Member"}
+                </div>
+
+                <h3 className="text-2xl font-extrabold">
+                  {lang === "ko" ? member.nameKo : member.nameEn}
+                </h3>
+
+                <p className="mt-1 text-sm opacity-70">
+                  {member.degree}
+                </p>
+
+                <p className="mt-4 text-sm leading-6 opacity-80">
+                  {lang === "ko" ? member.bioKo : member.bioEn}
+                </p>
+
+                {member.email && (
+                  <p className="mt-4 text-xs opacity-70">
+                    {member.email}
+                  </p>
+                )}
+
+              </CardContent>
+            </Card>
           </button>
         </motion.div>
+      ))}
         <motion.div whileHover={{ y: -6 }}>
           <Card className={`rounded-2xl border border-dashed ${s.card} ${theme === "night" ? "border-cyan-200/30 text-cyan-100" : "border-amber-400/40 text-slate-800"} shadow-xl`}>
             <CardContent className="flex h-full min-h-[260px] flex-col items-center justify-center p-8 text-center">
@@ -613,7 +675,12 @@ function ProfilePage({ t, s, theme, setPage }) {
         <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
           <CardContent className="p-6 text-center">
             <div className={`relative mx-auto mb-5 flex h-72 w-56 items-center justify-center overflow-hidden rounded-3xl border ${theme === "night" ? "border-cyan-200/20 bg-white/10" : "border-amber-200 bg-white/70"}`}>
-              <img src="/profile.jpg" alt="Jaehoon Seol" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              <img
+  src={t.profilePhotoUrl || "/profile.jpg"}
+  alt="Jaehoon Seol"
+  className="h-full w-full object-cover"
+  onError={(e) => { e.currentTarget.src = "/profile.jpg"; }}
+/>
             </div>
             <h3 className="text-2xl font-extrabold">{t.profileNameKo}</h3>
             <p className="mt-1 text-lg opacity-90">Jaehoon Seol</p>
@@ -636,7 +703,83 @@ function ProfilePage({ t, s, theme, setPage }) {
     </PageShell>
   );
 }
+function MemberProfilePage({ member, t, s, theme, setPage, lang }) {
+  if (!member) {
+    return (
+      <PageShell label={t.nav.members} title="Member" intro="">
+        <Button type="button" onClick={() => setPage("members")} className={s.button}>
+          Back to Members
+        </Button>
+      </PageShell>
+    );
+  }
 
+  return (
+    <PageShell
+      label={member.role || "Member"}
+      title={lang === "ko" ? member.nameKo : member.nameEn}
+      intro={member.degree}
+    >
+      <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+        <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+          <CardContent className="p-6 text-center">
+            <div className={`relative mx-auto mb-5 flex h-72 w-56 items-center justify-center overflow-hidden rounded-3xl border ${theme === "night" ? "border-cyan-200/20 bg-white/10" : "border-amber-200 bg-white/70"}`}>
+              {member.photoUrl ? (
+                <img
+                  src={member.photoUrl}
+                  alt={member.nameEn || member.nameKo}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  {theme === "day"
+                    ? <SunIcon className="h-12 w-12" />
+                    : <MoonIcon className="h-12 w-12 text-cyan-200" />}
+                </div>
+              )}
+            </div>
+
+            <h3 className="text-2xl font-extrabold">
+              {member.nameKo}
+            </h3>
+            <p className="mt-1 text-lg opacity-90">
+              {member.nameEn}
+            </p>
+            <p className="mt-1 text-sm opacity-70">
+              {member.degree}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+          <CardContent className="p-8">
+            <div className={`mb-4 inline-flex rounded-full px-4 py-2 text-xs font-bold ${s.soft}`}>
+              {member.role || "Member"}
+            </div>
+
+            <h3 className="text-3xl font-bold">
+              {lang === "ko" ? member.nameKo : member.nameEn}
+            </h3>
+
+            <p className={`mt-6 leading-8 ${theme === "night" ? "text-indigo-100" : "text-slate-700"}`}>
+              {lang === "ko" ? member.bioKo : member.bioEn}
+            </p>
+
+            {member.email && (
+              <p className="mt-6 text-sm opacity-80">
+                Email: {member.email}
+              </p>
+            )}
+
+            <Button type="button" onClick={() => setPage("members")} className={`mt-8 ${s.button}`}>
+              Back to Members
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </PageShell>
+  );
+}
 function PlatformPage({ t, s, theme }) {
   return (
     <PageShell label={t.platformLabel} title={t.platformTitle} intro={t.platformIntro}>
@@ -709,39 +852,131 @@ export default function LabWebsite() {
   const [lang, setLang] = useState("en");
   const [page, setPage] = useState("home");
   const [sanityNews, setSanityNews] = useState([]);
+  const [sanityMembers, setSanityMembers] = useState([]);
+  const [sanityPublications, setSanityPublications] = useState([]);
+  const [sanityProfile, setSanityProfile] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   useEffect(() => {
-    sanityClient
-      .fetch(`*[_type == "news"] | order(date desc) {
-        date,
-        category,
-        titleEn,
-        titleKo,
-        textEn,
-        textKo
-      }`)
-      .then(setSanityNews)
-      .catch(console.error);
-  }, []);
+  sanityClient
+    .fetch(`*[_type == "news"] | order(date desc) {
+      _id, date, category, titleEn, titleKo, textEn, textKo
+    }`)
+    .then(setSanityNews)
+    .catch(console.error);
 
+  sanityClient
+  .fetch(`*[_type == "member"]{
+    _id,
+    nameKo,
+    nameEn,
+    role,
+    degree,
+    bioEn,
+    bioKo,
+    email,
+    order,
+    "photoUrl": photo.asset->url
+  }`)
+  .then((data) => {
+    console.log("member fetch:", data);
+    setSanityMembers(data);
+  })
+  .catch(console.error);
+
+  sanityClient
+    .fetch(`*[_type == "publication"] | order(year desc) {
+      _id, year, authors, title, journal, volumePages, doi, featured
+    }`)
+    .then(setSanityPublications)
+    .catch(console.error);
+
+  sanityClient
+    .fetch(`*[_type == "profile"][0] {
+      titleEn, titleKo, introEn, introKo,
+      highlightsEn, highlightsKo, education, keywords,
+      "photoUrl": photo.asset->url
+    }`)
+    .then(setSanityProfile)
+    .catch(console.error);
+}, []);
+console.log("sanityMembers:", sanityMembers);
   const t = {
-    ...copy[lang],
-    newsItems:
-      sanityNews.length > 0
-        ? sanityNews.map((item) => ({
-           date: item.date,
-           category: item.category,
-           title: lang === "ko" ? item.titleKo : item.titleEn,
-           text: lang === "ko" ? item.textKo : item.textEn,
-          }))
-        : copy[lang].newsItems,
-  };
+  ...copy[lang],
+
+  newsItems:
+    sanityNews.length > 0
+      ? sanityNews.map((item) => ({
+          date: item.date,
+          category: item.category,
+          title: lang === "ko" ? item.titleKo : item.titleEn,
+          text: lang === "ko" ? item.textKo : item.textEn,
+        }))
+      : copy[lang].newsItems,
+
+  publications:
+    sanityPublications.length > 0
+      ? sanityPublications.map((p) =>
+          `${p.authors}. ${p.title}. ${p.journal}, ${p.year}${p.volumePages ? "; " + p.volumePages : ""}${p.doi ? ". doi:" + p.doi : ""}.`
+        )
+      : copy[lang].publications,
+
+  profileTitle:
+    sanityProfile
+      ? lang === "ko"
+        ? sanityProfile.titleKo
+        : sanityProfile.titleEn
+      : copy[lang].profileTitle,
+
+  profileIntro:
+    sanityProfile
+      ? lang === "ko"
+        ? sanityProfile.introKo
+        : sanityProfile.introEn
+      : copy[lang].profileIntro,
+
+  profileHighlights:
+    sanityProfile
+      ? lang === "ko"
+        ? sanityProfile.highlightsKo || copy[lang].profileHighlights
+        : sanityProfile.highlightsEn || copy[lang].profileHighlights
+      : copy[lang].profileHighlights,
+
+  profileEducation:
+    sanityProfile?.education || copy[lang].profileEducation,
+
+  profileKeywords:
+    sanityProfile?.keywords || copy[lang].profileKeywords,
+
+  profilePhotoUrl:
+    sanityProfile?.photoUrl || "/profile.jpg",
+};
 
   const s = themes[theme] || themes.night;
 
   const renderPage = () => {
-    if (page === "members") return <MembersPage t={t} s={s} theme={theme} setPage={setPage} />;
+    if (page === "members") return (
+  <MembersPage
+    t={t}
+    s={s}
+    theme={theme}
+    setPage={setPage}
+    members={sanityMembers}
+    lang={lang}
+    setSelectedMember={setSelectedMember}
+  />
+);
     if (page === "profile") return <ProfilePage t={t} s={s} theme={theme} setPage={setPage} />;
+    if (page === "memberProfile") return (
+  <MemberProfilePage
+    member={selectedMember}
+    t={t}
+    s={s}
+    theme={theme}
+    setPage={setPage}
+    lang={lang}
+  />
+);
     if (page === "collaborators") return <CollaboratorsPage t={t} s={s} theme={theme} />;
     if (page === "platform") return <PlatformPage t={t} s={s} theme={theme} />;
     if (page === "publications") return <PublicationsPage t={t} s={s} theme={theme} />;

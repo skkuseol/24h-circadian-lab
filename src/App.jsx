@@ -477,7 +477,14 @@ function PageShell({ label, title, intro, children }) {
     </motion.section>
   );
 }
-function NewsSection({ t, s, theme, lang }) {
+function NewsSection({
+  t,
+  s,
+  theme,
+  lang,
+  setPage,
+  setSelectedNews,
+}) {
   const [showAllNews, setShowAllNews] = useState(false);
 
   const visibleNews = showAllNews
@@ -546,16 +553,18 @@ function NewsSection({ t, s, theme, lang }) {
                 </p>
               )}
 
-              {item.link && (
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`mt-5 inline-flex rounded-md px-4 py-2 text-sm font-semibold ${s.button}`}
-                >
-                  {lang === "ko" ? "자세히 보기" : "View details"}
-                </a>
-              )}
+              <Button
+                type="button"
+                onClick={() => {
+                  setSelectedNews(item);
+                  setPage("newsDetail");
+                }}
+                className={`mt-5 ${s.button}`}
+              >
+                {lang === "ko" ? "자세히 보기" : "View details"}
+               </Button> 
+
+                
             </CardContent>
           </Card>
         ))}
@@ -585,7 +594,69 @@ function NewsSection({ t, s, theme, lang }) {
     </motion.section>
   );
 }
-function HomePage({ theme, setTheme, t, s, setPage, lang }) {
+function NewsDetailPage({
+  news,
+  t,
+  s,
+  theme,
+  lang,
+  setPage,
+}) {
+  if (!news) return null;
+
+  return (
+    <PageShell
+      label={news.category}
+      title={lang === "ko" ? news.titleKo : news.titleEn}
+      intro={news.date}
+    >
+
+      <Button
+        onClick={() => setPage("home")}
+        className={s.button}
+      >
+        ← Back
+      </Button>
+
+      {news.detailImageUrl && (
+        <img
+          src={news.detailImageUrl}
+          className="mt-8 w-full rounded-3xl"
+        />
+      )}
+
+      <div className="mt-8">
+        <p className="leading-8">
+          {lang === "ko"
+            ? news.detailTextKo
+            : news.detailTextEn}
+        </p>
+
+        {news.link && (
+          <a
+            href={news.link}
+            target="_blank"
+            rel="noreferrer"
+            className={`mt-8 inline-flex ${s.button}`}
+          >
+            Read Paper
+          </a>
+        )}
+      </div>
+
+    </PageShell>
+  );
+}
+
+function HomePage({
+  theme,
+  setTheme,
+  t,
+  s,
+  setPage,
+  lang,
+  setSelectedNews,
+}) {
   const active = t.theme[theme];
   return (
     <section className="relative overflow-hidden px-6 py-24 md:py-32">
@@ -603,10 +674,12 @@ function HomePage({ theme, setTheme, t, s, setPage, lang }) {
         </motion.div>
         <RhythmToggle theme={theme} setTheme={setTheme} t={t} s={s} />
         <NewsSection
-         t={t}
-         s={s}
-         theme={theme}
-         lang={lang}
+           t={t}
+           s={s}
+           theme={theme}
+           lang={lang}
+           setPage={setPage}
+           setSelectedNews={setSelectedNews}
         />
         <motion.div className="mt-20 text-left" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <p className={`text-sm font-semibold uppercase tracking-[0.3em] ${theme === "night" ? "text-cyan-200" : "text-slate-600"}`}>{t.homeResearchLabel}</p>
@@ -1202,25 +1275,36 @@ export default function LabWebsite() {
   const [theme, setTheme] = useState("night");
   const [lang, setLang] = useState("en");
   const [page, setPage] = useState("home");
+  const [selectedNews, setSelectedNews] = useState(null);
+  const [selectedNews,setSelectedNews]=useState(null);
   const [sanityNews, setSanityNews] = useState([]);
   const [sanityMembers, setSanityMembers] = useState([]);
   const [sanityPublications, setSanityPublications] = useState([]);
   const [sanityProfile, setSanityProfile] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [selectedNews, setSelectedNews] = useState(null);
 
   useEffect(() => {
   sanityClient
-    .fetch(`*[_type == "news"] | order(date desc) {
-      _id,
-      date,
-      category,
-      titleEn,
-      titleKo,
-      textEn,
-      textKo,
-      link,
-      "imageUrl": image.asset->url
-    }`)
+    .fetch(`
+    *[_type=="news"]{
+    _id,
+    date,
+    category,
+    titleEn,
+    titleKo,
+    textEn,
+    textKo,
+
+    detailTextEn,
+    detailTextKo,
+
+    link,
+
+    "imageUrl":image.asset->url,
+    "detailImageUrl":detailImage.asset->url
+    }
+    `)
     .then(setSanityNews)
     .catch(console.error);
 
@@ -1326,6 +1410,18 @@ console.log("sanityMembers:", sanityMembers);
   const s = themes[theme] || themes.night;
 
   const renderPage = () => {
+    if (page === "newsDetail") {
+    return (
+      <NewsDetailPage
+        news={selectedNews}
+        t={t}
+        s={s}
+        theme={theme}
+        lang={lang}
+        setPage={setPage}
+      />
+    );
+  }
     if (page === "members") return (
   <MembersPage
     t={t}
@@ -1352,7 +1448,7 @@ console.log("sanityMembers:", sanityMembers);
     if (page === "platform") return <PlatformPage t={t} s={s} theme={theme} />;
     if (page === "publications") return <PublicationsPage t={t} s={s} theme={theme} />;
     if (page === "contact") return <ContactPage t={t} />;
-    return <HomePage theme={theme} setTheme={setTheme} t={t} s={s} setPage={setPage} lang={lang} />;
+    return <HomePage theme={theme} setTheme={setTheme} t={t} s={s} setPage={setPage} lang={lang} setSelectedNews={setSelectedNews} />;
   };
 
   return (

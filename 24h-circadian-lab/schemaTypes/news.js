@@ -54,5 +54,23 @@ export const newsType = defineType({
       title: 'Article or DOI Link',
       type: 'url',
     }),
+    defineField({
+     name: "detailImage",
+     title: "Large Image",
+     type: "image",
+     options: { hotspot: true },
+    }),
+
+    defineField({
+      name: "detailTextEn",
+      title: "English Detail",
+      type: "text",
+    }),
+
+    defineField({
+      name: "detailTextKo",
+      title: "Korean Detail",
+      type: "text",
+    }),
   ],
 })

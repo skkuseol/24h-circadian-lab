@@ -1067,6 +1067,21 @@ function PublicationsPage({ t, s, theme }) {
                               Featured
                             </span>
                           )}
+                          {publication.authorRole && (
+    <span className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}>
+      {{
+        first: "First Author",
+        cofirst: "Co-first Author",
+        corresponding: "Corresponding Author",
+        cocorresponding: "Co-corresponding Author",
+        senior: "Senior Author",
+        coauthor: "Co-author",
+      }[publication.authorRole]}
+    </span>
+  )}
+
+
+                    
 
                           {doiUrl && (
                             <a
@@ -1186,12 +1201,13 @@ export default function LabWebsite() {
     .fetch(`*[_type == "publication"] | order(year desc, featured desc, _createdAt desc) {
      _id,
      year,
-      authors,
+     authors,
      title,
      journal,
      volumePages,
      doi,
-     featured
+     featured,
+     authorRole
     }`)
 
     .then(setSanityPublications)

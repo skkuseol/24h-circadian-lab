@@ -1332,7 +1332,8 @@ export default function LabWebsite() {
   useEffect(() => {
   sanityClient
     .fetch(`
-    *[_type=="news"]{
+    *[_type=="news"]
+    | order(date desc, _createdAt desc){
     _id,
     date,
     category,

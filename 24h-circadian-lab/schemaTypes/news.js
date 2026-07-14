@@ -9,7 +9,7 @@ export const newsType = defineType({
     defineField({
       name: 'date',
       title: 'Date',
-      type: 'string',
+      type: 'date',
     }),
 
     defineField({

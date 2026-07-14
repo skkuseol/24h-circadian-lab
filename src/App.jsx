@@ -947,6 +947,32 @@ function HighlightedAuthors({ authors }) {
 
 
 function PublicationsPage({ t, s, theme }) {
+  const publicationObjects = t.publications.filter(
+    (publication) => typeof publication !== "string"
+  );
+
+  const years = [
+    "All",
+    ...Array.from(
+      new Set(
+        publicationObjects
+          .map((publication) => publication.year)
+          .filter(Boolean)
+      )
+    ).sort((a, b) => b - a),
+  ];
+
+  const [selectedYear, setSelectedYear] = useState("All");
+
+  const filteredPublications =
+    selectedYear === "All"
+      ? t.publications
+      : t.publications.filter(
+          (publication) =>
+            typeof publication !== "string" &&
+            publication.year === selectedYear
+        );
+
   return (
     <PageShell
       label={t.publicationsLabel}
@@ -956,10 +982,30 @@ function PublicationsPage({ t, s, theme }) {
       <h3 className="mb-5 text-2xl font-bold">
         {t.publicationsSectionTitle}
       </h3>
+      <div className="mb-8 flex flex-wrap gap-3">
+  {years.map((year) => (
+    <button
+      key={year}
+      type="button"
+      onClick={() => setSelectedYear(year)}
+      className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+        selectedYear === year
+          ? s.button
+          : `${s.soft} hover:opacity-80`
+      }`}
+    >
+      {year === "All"
+        ? t.home === "Home"
+          ? "All Years"
+          : "전체 연도"
+        : year}
+    </button>
+  ))}
+</div>
 
       <div className="grid gap-4">
         {t.publications.length > 0 ? (
-          t.publications.map((publication, index) => {
+          filteredPublications.map((publication, index) => {
             /*
               Sanity 논문은 객체이고,
               completePublications fallback은 문자열입니다.

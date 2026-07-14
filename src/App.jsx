@@ -596,54 +596,101 @@ function NewsSection({
 }
 function NewsDetailPage({
   news,
-  t,
   s,
   theme,
   lang,
   setPage,
 }) {
-  if (!news) return null;
+  if (!news) {
+    return (
+      <PageShell
+        label="News"
+        title={lang === "ko" ? "소식을 찾을 수 없습니다" : "News not found"}
+        intro=""
+      >
+        <Button
+          type="button"
+          onClick={() => setPage("home")}
+          className={s.button}
+        >
+          {lang === "ko" ? "← 홈으로" : "← Back to Home"}
+        </Button>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell
-      label={news.category}
-      title={lang === "ko" ? news.titleKo : news.titleEn}
+      label={news.category || "News"}
+      title={news.title}
       intro={news.date}
     >
-
       <Button
+        type="button"
         onClick={() => setPage("home")}
         className={s.button}
       >
-        ← Home
+        {lang === "ko" ? "← 연구실 소식으로" : "← Back to Latest News"}
       </Button>
 
-      {(news.detailImageUrl || news.imageUrl) && (
-         <img
-           src={news.detailImageUrl || news.imageUrl}
-           className="mt-8 w-full rounded-3xl"
-         />
-        )}
+      {news.imageUrl && (
+        <div
+          className={`mx-auto mt-8 max-w-5xl overflow-hidden rounded-3xl border shadow-2xl ${
+            theme === "night"
+              ? "border-cyan-200/20 bg-white/5"
+              : "border-amber-200 bg-white"
+          }`}
+        >
+          <img
+            src={news.imageUrl}
+            alt={news.title || "News infographic"}
+            className="block h-auto w-full object-contain"
+          />
+        </div>
+      )}
 
-      <div className="mt-8">
-        <p className="leading-8">
-          {lang === "ko"
-            ? news.detailTextKo
-            : news.detailTextEn}
-        </p>
+      <Card
+        className={`mx-auto mt-8 max-w-5xl rounded-3xl border ${s.card} shadow-xl ${
+          theme === "night"
+            ? "border-cyan-200/20 text-white"
+            : "text-slate-900"
+        }`}
+      >
+        <CardContent className="p-8 md:p-10">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}
+            >
+              {news.category}
+            </span>
 
-        {news.link && (
-          <a
-            href={news.link}
-            target="_blank"
-            rel="noreferrer"
-            className={`mt-8 inline-flex ${s.button}`}
-          >
-            Read Paper
-          </a>
-        )}
-      </div>
+            <span className="text-sm opacity-65">
+              {news.date}
+            </span>
+          </div>
 
+          <h3 className="text-2xl font-extrabold leading-tight md:text-4xl">
+            {news.title}
+          </h3>
+
+          {news.text && (
+            <p className="mt-6 whitespace-pre-line text-base leading-8 opacity-85">
+              {news.text}
+            </p>
+          )}
+
+          {news.link && (
+            <a
+              href={news.link}
+              target="_blank"
+              rel="noreferrer"
+              className={`mt-8 inline-flex items-center justify-center rounded-md px-5 py-3 font-semibold transition ${s.button}`}
+            >
+              {lang === "ko" ? "논문 원문 보기" : "Read Full Paper"}
+            </a>
+          )}
+        </CardContent>
+      </Card>
     </PageShell>
   );
 }

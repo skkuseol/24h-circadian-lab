@@ -618,12 +618,12 @@ function NewsDetailPage({
         ← Home
       </Button>
 
-      {news.detailImageUrl && (
-        <img
-          src={news.detailImageUrl}
-          className="mt-8 w-full rounded-3xl"
-        />
-      )}
+      {(news.detailImageUrl || news.imageUrl) && (
+         <img
+           src={news.detailImageUrl || news.imageUrl}
+           className="mt-8 w-full rounded-3xl"
+         />
+        )}
 
       <div className="mt-8">
         <p className="leading-8">

@@ -41,5 +41,18 @@ export const newsType = defineType({
       title: 'Korean Text',
       type: 'text',
     }),
+    defineField({
+      name: 'image',
+      title: 'News Image / Infographic',
+      type: 'image',
+      options: {
+      hotspot: true,
+      },
+    }),
+    defineField({
+      name: 'link',
+      title: 'Article or DOI Link',
+      type: 'url',
+    }),
   ],
 })

@@ -477,7 +477,13 @@ function PageShell({ label, title, intro, children }) {
     </motion.section>
   );
 }
-function NewsSection({ t, s, theme }) {
+function NewsSection({ t, s, theme, lang }) {
+  const [showAllNews, setShowAllNews] = useState(false);
+
+  const visibleNews = showAllNews
+    ? t.newsItems
+    : t.newsItems.slice(0, 3);
+
   return (
     <motion.section
       className="mt-20 text-left"
@@ -485,33 +491,101 @@ function NewsSection({ t, s, theme }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.18 }}
     >
-      <p className={`text-sm font-semibold uppercase tracking-[0.3em] ${theme === "night" ? "text-cyan-200" : "text-slate-600"}`}>
+      <p
+        className={`text-sm font-semibold uppercase tracking-[0.3em] ${
+          theme === "night" ? "text-cyan-200" : "text-slate-600"
+        }`}
+      >
         {t.newsLabel}
       </p>
+
       <h3 className="mt-3 text-3xl font-extrabold md:text-5xl">
         {t.newsTitle}
       </h3>
 
       <div className="mt-8 grid gap-5 md:grid-cols-3">
-        {t.newsItems.map((item) => (
-          <Card key={`${item.date}-${item.title}`} className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+        {visibleNews.map((item) => (
+          <Card
+            key={item._id || `${item.date}-${item.title}`}
+            className={`overflow-hidden rounded-2xl border ${s.card} shadow-xl ${
+              theme === "night"
+                ? "border-cyan-200/20 text-white"
+                : "text-slate-900"
+            }`}
+          >
+            {item.imageUrl && (
+              <div className="aspect-[16/9] w-full overflow-hidden">
+                <img
+                  src={item.imageUrl}
+                  alt={item.title || "News"}
+                  className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                />
+              </div>
+            )}
+
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between gap-3">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}
+                >
                   {item.category}
                 </span>
-                <span className="text-xs opacity-70">{item.date}</span>
+
+                <span className="text-xs opacity-70">
+                  {item.date}
+                </span>
               </div>
-              <h4 className="text-lg font-extrabold leading-7">{item.title}</h4>
-              <p className="mt-3 text-sm leading-6 opacity-80">{item.text}</p>
+
+              <h4 className="text-lg font-extrabold leading-7">
+                {item.title}
+              </h4>
+
+              {item.text && (
+                <p className="mt-3 text-sm leading-6 opacity-80">
+                  {item.text}
+                </p>
+              )}
+
+              {item.link && (
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`mt-5 inline-flex rounded-md px-4 py-2 text-sm font-semibold ${s.button}`}
+                >
+                  {lang === "ko" ? "자세히 보기" : "View details"}
+                </a>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {t.newsItems.length > 3 && (
+        <div className="mt-8 flex justify-center">
+          <Button
+            type="button"
+            onClick={() => setShowAllNews((previous) => !previous)}
+            className={
+              showAllNews
+                ? "border border-white/20 bg-white/10 text-current hover:bg-white/20"
+                : s.button
+            }
+          >
+            {showAllNews
+              ? lang === "ko"
+                ? "접기"
+                : "Show Less"
+              : lang === "ko"
+                ? "소식 더 보기"
+                : "More News"}
+          </Button>
+        </div>
+      )}
     </motion.section>
   );
 }
-function HomePage({ theme, setTheme, t, s, setPage }) {
+function HomePage({ theme, setTheme, t, s, setPage, lang }) {
   const active = t.theme[theme];
   return (
     <section className="relative overflow-hidden px-6 py-24 md:py-32">
@@ -528,7 +602,12 @@ function HomePage({ theme, setTheme, t, s, setPage }) {
           </div>
         </motion.div>
         <RhythmToggle theme={theme} setTheme={setTheme} t={t} s={s} />
-        <NewsSection t={t} s={s} theme={theme} />
+        <NewsSection
+         t={t}
+         s={s}
+         theme={theme}
+         lang={lang}
+        />
         <motion.div className="mt-20 text-left" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <p className={`text-sm font-semibold uppercase tracking-[0.3em] ${theme === "night" ? "text-cyan-200" : "text-slate-600"}`}>{t.homeResearchLabel}</p>
           <h3 className="mt-3 max-w-3xl text-3xl font-extrabold md:text-5xl">{t.homeResearchTitle}</h3>
@@ -813,25 +892,236 @@ function PlatformPage({ t, s, theme }) {
     </PageShell>
   );
 }
+function normalizeDoiUrl(doi) {
+  if (!doi) return "";
+
+  const cleanDoi = String(doi)
+    .trim()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")
+    .replace(/^doi:\s*/i, "");
+
+  return cleanDoi
+    ? `https://doi.org/${cleanDoi}`
+    : "";
+}
+
+function HighlightedAuthors({ authors }) {
+  if (!authors) return null;
+
+  /*
+    다음 형태를 자동 강조:
+    Seol J
+    Seol JH
+    Seol Jaehoon
+    Jaehoon Seol
+    설재훈
+  */
+  const namePattern =
+    /(Jaehoon\s+Seol|Seol\s+J(?:H|aehoon)?|설재훈)/gi;
+
+  const parts = String(authors).split(namePattern);
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        const isMyName =
+          /^(Jaehoon\s+Seol|Seol\s+J(?:H|aehoon)?|설재훈)$/i.test(
+            part.trim()
+          );
+
+        return isMyName ? (
+          <strong
+            key={`${part}-${index}`}
+            className="font-extrabold underline decoration-2 underline-offset-4"
+          >
+            {part}
+          </strong>
+        ) : (
+          <span key={`${part}-${index}`}>{part}</span>
+        );
+      })}
+    </>
+  );
+}
+
+
 
 function PublicationsPage({ t, s, theme }) {
   return (
-    <PageShell label={t.publicationsLabel} title={t.publicationsTitle} intro={t.publicationsIntro}>
-      <h3 className="mb-5 text-2xl font-bold">{t.publicationsSectionTitle}</h3>
+    <PageShell
+      label={t.publicationsLabel}
+      title={t.publicationsTitle}
+      intro={t.publicationsIntro}
+    >
+      <h3 className="mb-5 text-2xl font-bold">
+        {t.publicationsSectionTitle}
+      </h3>
+
       <div className="grid gap-4">
-        {t.publications.map((title, index) => (
-          <Card key={`${index}-${title}`} className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
-            <CardContent className="flex items-start gap-4 p-5">
-              <span className={`mt-1 shrink-0 rounded-full px-2 py-1 text-xs font-bold ${s.soft}`}>{index + 1}</span>
-              <span className={`text-sm leading-7 ${theme === "night" ? "text-indigo-100" : "text-slate-700"}`}>{title}</span>
-            </CardContent>
-          </Card>
+        {t.publications.length > 0 ? (
+          t.publications.map((publication, index) => {
+            /*
+              Sanity 논문은 객체이고,
+              completePublications fallback은 문자열입니다.
+            */
+            const isLegacyString = typeof publication === "string";
+
+            if (isLegacyString) {
+              return (
+                <Card
+                  key={`${index}-${publication}`}
+                  className={`rounded-2xl border ${s.card} shadow-xl ${
+                    theme === "night"
+                      ? "border-cyan-200/20 text-white"
+                      : "text-slate-900"
+                  }`}
+                >
+                  <CardContent className="flex items-start gap-4 p-5">
+                    <span
+                      className={`mt-1 shrink-0 rounded-full px-2 py-1 text-xs font-bold ${s.soft}`}
+                    >
+                      {index + 1}
+                    </span>
+
+                    <p
+                      className={`text-sm leading-7 ${
+                        theme === "night"
+                          ? "text-indigo-100"
+                          : "text-slate-700"
+                      }`}
+                    >
+                      {publication}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            const doiUrl = normalizeDoiUrl(publication.doi);
+
+            return (
+              <motion.div
+                key={publication._id || `${publication.title}-${index}`}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card
+                  className={`rounded-2xl border ${s.card} shadow-xl ${
+                    theme === "night"
+                      ? "border-cyan-200/20 text-white"
+                      : "text-slate-900"
+                  }`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <span
+                        className={`mt-1 shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${s.soft}`}
+                      >
+                        {index + 1}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`text-sm leading-7 ${
+                            theme === "night"
+                              ? "text-indigo-100"
+                              : "text-slate-700"
+                          }`}
+                        >
+                          <HighlightedAuthors
+                            authors={publication.authors}
+                          />
+                        </p>
+
+                        <h4 className="mt-2 text-base font-semibold leading-7">
+                          {publication.title}
+                        </h4>
+
+                        <p className="mt-2 text-sm leading-7">
+                          <span className="font-extrabold underline decoration-2 underline-offset-4">
+                            {publication.journal}
+                          </span>
+
+                          {publication.year && (
+                            <>
+                              {", "}
+                              <span>{publication.year}</span>
+                            </>
+                          )}
+
+                          {publication.volumePages && (
+                            <>
+                              {"; "}
+                              <span>{publication.volumePages}</span>
+                            </>
+                          )}
+
+                          {"."}
+                        </p>
+
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                          {publication.featured && (
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}
+                            >
+                              Featured
+                            </span>
+                          )}
+
+                          {doiUrl && (
+                            <a
+                              href={doiUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`inline-flex rounded-md px-3 py-2 text-xs font-bold ${s.button}`}
+                            >
+                              DOI
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
+        ) : (
+          <p className="text-sm opacity-70">
+            {t.publicationsPlaceholder}
+          </p>
+        )}
+      </div>
+
+      <h3 className="mb-5 mt-14 text-2xl font-bold">
+        {t.grantsTitle}
+      </h3>
+
+      <div className="space-y-3">
+        {t.grants.map((item) => (
+          <p
+            key={item}
+            className="text-sm leading-7 opacity-90"
+          >
+            • {item}
+          </p>
         ))}
       </div>
-      <h3 className="mt-14 mb-5 text-2xl font-bold">{t.grantsTitle}</h3>
-      <div className="space-y-3">{t.grants.map((item) => <p key={item} className="text-sm leading-7 opacity-90">• {item}</p>)}</div>
-      <h3 className="mt-14 mb-5 text-2xl font-bold">{t.awardsTitle}</h3>
-      <div className="space-y-3">{t.awards.map((item) => <p key={item} className="text-sm leading-7 opacity-90">• {item}</p>)}</div>
+
+      <h3 className="mb-5 mt-14 text-2xl font-bold">
+        {t.awardsTitle}
+      </h3>
+
+      <div className="space-y-3">
+        {t.awards.map((item) => (
+          <p
+            key={item}
+            className="text-sm leading-7 opacity-90"
+          >
+            • {item}
+          </p>
+        ))}
+      </div>
     </PageShell>
   );
 }
@@ -860,7 +1150,15 @@ export default function LabWebsite() {
   useEffect(() => {
   sanityClient
     .fetch(`*[_type == "news"] | order(date desc) {
-      _id, date, category, titleEn, titleKo, textEn, textKo
+      _id,
+      date,
+      category,
+      titleEn,
+      titleKo,
+      textEn,
+      textKo,
+      link,
+      "imageUrl": image.asset->url
     }`)
     .then(setSanityNews)
     .catch(console.error);
@@ -885,11 +1183,21 @@ export default function LabWebsite() {
   .catch(console.error);
 
   sanityClient
-    .fetch(`*[_type == "publication"] | order(year desc) {
-      _id, year, authors, title, journal, volumePages, doi, featured
+    .fetch(`*[_type == "publication"] | order(year desc, featured desc, _createdAt desc) {
+     _id,
+     year,
+      authors,
+     title,
+     journal,
+     volumePages,
+     doi,
+     featured
     }`)
+
     .then(setSanityPublications)
-    .catch(console.error);
+    .catch((error) => {
+     console.error("Publication fetch error:", error);
+    });
 
   sanityClient
     .fetch(`*[_type == "profile"][0] {
@@ -905,21 +1213,22 @@ console.log("sanityMembers:", sanityMembers);
   ...copy[lang],
 
   newsItems:
-    sanityNews.length > 0
-      ? sanityNews.map((item) => ({
-          date: item.date,
-          category: item.category,
-          title: lang === "ko" ? item.titleKo : item.titleEn,
-          text: lang === "ko" ? item.textKo : item.textEn,
-        }))
-      : copy[lang].newsItems,
+  sanityNews.length > 0
+    ? sanityNews.map((item) => ({
+        _id: item._id,
+        date: item.date,
+        category: item.category,
+        title: lang === "ko" ? item.titleKo : item.titleEn,
+        text: lang === "ko" ? item.textKo : item.textEn,
+        imageUrl: item.imageUrl,
+        link: item.link,
+      }))
+    : copy[lang].newsItems,
 
   publications:
-    sanityPublications.length > 0
-      ? sanityPublications.map((p) =>
-          `${p.authors}. ${p.title}. ${p.journal}, ${p.year}${p.volumePages ? "; " + p.volumePages : ""}${p.doi ? ". doi:" + p.doi : ""}.`
-        )
-      : copy[lang].publications,
+     sanityPublications.length > 0
+       ? sanityPublications
+       : copy[lang].publications,
 
   profileTitle:
     sanityProfile
@@ -981,7 +1290,7 @@ console.log("sanityMembers:", sanityMembers);
     if (page === "platform") return <PlatformPage t={t} s={s} theme={theme} />;
     if (page === "publications") return <PublicationsPage t={t} s={s} theme={theme} />;
     if (page === "contact") return <ContactPage t={t} />;
-    return <HomePage theme={theme} setTheme={setTheme} t={t} s={s} setPage={setPage} />;
+    return <HomePage theme={theme} setTheme={setTheme} t={t} s={s} setPage={setPage} lang={lang} />;
   };
 
   return (

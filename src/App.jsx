@@ -1346,8 +1346,7 @@ export default function LabWebsite() {
 
     link,
 
-    "imageUrl":image.asset->url,
-    "detailImageUrl":detailImage.asset->url
+    "imageUrl":image.asset->url    
     }
     `)
     .then(setSanityNews)
@@ -1420,8 +1419,6 @@ sanityNews.length > 0
       detailTextEn: item.detailTextEn,
 
       imageUrl: item.imageUrl,
-      detailImageUrl: item.detailImageUrl,
-
       link: item.link,
     }))
   : copy[lang].newsItems;

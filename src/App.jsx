@@ -1421,7 +1421,7 @@ sanityNews.length > 0
       imageUrl: item.imageUrl,
       link: item.link,
     }))
-  : copy[lang].newsItems;
+  : copy[lang].newsItems,
 
   publications:
      sanityPublications.length > 0

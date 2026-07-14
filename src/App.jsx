@@ -615,7 +615,7 @@ function NewsDetailPage({
         onClick={() => setPage("home")}
         className={s.button}
       >
-        ← Back
+        ← Home
       </Button>
 
       {news.detailImageUrl && (
@@ -1274,9 +1274,7 @@ function ContactPage({ t }) {
 export default function LabWebsite() {
   const [theme, setTheme] = useState("night");
   const [lang, setLang] = useState("en");
-  const [page, setPage] = useState("home");
-  const [selectedNews, setSelectedNews] = useState(null);
-  const [selectedNews,setSelectedNews]=useState(null);
+  const [page, setPage] = useState("home"); 
   const [sanityNews, setSanityNews] = useState([]);
   const [sanityMembers, setSanityMembers] = useState([]);
   const [sanityPublications, setSanityPublications] = useState([]);
@@ -1359,17 +1357,27 @@ console.log("sanityMembers:", sanityMembers);
   ...copy[lang],
 
   newsItems:
-  sanityNews.length > 0
-    ? sanityNews.map((item) => ({
-        _id: item._id,
-        date: item.date,
-        category: item.category,
-        title: lang === "ko" ? item.titleKo : item.titleEn,
-        text: lang === "ko" ? item.textKo : item.textEn,
-        imageUrl: item.imageUrl,
-        link: item.link,
-      }))
-    : copy[lang].newsItems,
+sanityNews.length > 0
+  ? sanityNews.map((item) => ({
+      _id: item._id,
+      date: item.date,
+      category: item.category,
+
+      title: lang === "ko" ? item.titleKo : item.titleEn,
+      text: lang === "ko" ? item.textKo : item.textEn,
+
+      titleKo: item.titleKo,
+      titleEn: item.titleEn,
+
+      detailTextKo: item.detailTextKo,
+      detailTextEn: item.detailTextEn,
+
+      imageUrl: item.imageUrl,
+      detailImageUrl: item.detailImageUrl,
+
+      link: item.link,
+    }))
+  : copy[lang].newsItems;
 
   publications:
      sanityPublications.length > 0

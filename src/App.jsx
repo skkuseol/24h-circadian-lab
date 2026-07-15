@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactGA from "react-ga4";
 import { createClient } from "@sanity/client";
 import { motion } from "framer-motion";
 function Card({ className = "", children }) {
@@ -1319,6 +1320,16 @@ function ContactPage({ t }) {
 }
 
 export default function LabWebsite() {
+
+  useEffect(() => {
+    ReactGA.initialize("G-7PT1TZ6BPH");
+
+    ReactGA.send({
+      hitType: "pageview",
+      page: window.location.pathname,
+    });
+  }, []);
+
   const [theme, setTheme] = useState("night");
   const [lang, setLang] = useState("en");
   const [page, setPage] = useState("home"); 

@@ -1320,19 +1320,10 @@ function ContactPage({ t }) {
 }
 
 export default function LabWebsite() {
-
-  useEffect(() => {
-    ReactGA.initialize("G-7PT1TZ6BPH");
-
-    ReactGA.send({
-      hitType: "pageview",
-      page: window.location.pathname,
-    });
-  }, []);
-
   const [theme, setTheme] = useState("night");
   const [lang, setLang] = useState("en");
-  const [page, setPage] = useState("home"); 
+  const [page, setPage] = useState("home");
+
   const [sanityNews, setSanityNews] = useState([]);
   const [sanityMembers, setSanityMembers] = useState([]);
   const [sanityPublications, setSanityPublications] = useState([]);
@@ -1340,29 +1331,46 @@ export default function LabWebsite() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
 
+  // Google Analytics 초기화
   useEffect(() => {
-  sanityClient
-    .fetch(`
-    *[_type=="news"]
-    | order(date desc, _createdAt desc){
-    _id,
-    date,
-    category,
-    titleEn,
-    titleKo,
-    textEn,
-    textKo,
+    ReactGA.initialize("G-7PT1TZ6BPH");
+  }, []);
 
-    detailTextEn,
-    detailTextKo,
+  // 홈페이지 내부 메뉴 이동 추적
+  useEffect(() => {
+    const pagePath = page === "home" ? "/" : `/${page}`;
 
-    link,
+    ReactGA.send({
+      hitType: "pageview",
+      page: pagePath,
+      title: page,
+    });
+  }, [page]);
 
-    "imageUrl":image.asset->url    
-    }
-    `)
-    .then(setSanityNews)
-    .catch(console.error);
+  // 아래부터 기존 Sanity fetch useEffect
+  useEffect(() => {
+    sanityClient
+      .fetch(`
+        *[_type == "news"]
+        | order(date desc, _createdAt desc) {
+          _id,
+          date,
+          category,
+          titleEn,
+          titleKo,
+          textEn,
+          textKo,
+          detailTextEn,
+          detailTextKo,
+          link,
+          "imageUrl": image.asset->url
+        }
+      `)
+      .then(setSanityNews)
+      .catch(console.error);
+
+    // 나머지 fetch 그대로...
+  }, []);
 
   sanityClient
   .fetch(`*[_type == "member"]{

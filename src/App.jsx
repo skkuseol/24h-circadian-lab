@@ -1347,7 +1347,7 @@ export default function LabWebsite() {
     });
   }, [page]);
 
-  // 아래부터 기존 Sanity fetch useEffect
+  // Sanity 데이터 불러오기
   useEffect(() => {
     sanityClient
       .fetch(`
@@ -1369,79 +1369,90 @@ export default function LabWebsite() {
       .then(setSanityNews)
       .catch(console.error);
 
-    // 나머지 fetch 그대로...
+    sanityClient
+      .fetch(`
+        *[_type == "member"] | order(order asc) {
+          _id,
+          nameKo,
+          nameEn,
+          role,
+          degree,
+          bioEn,
+          bioKo,
+          email,
+          order,
+          "photoUrl": photo.asset->url
+        }
+      `)
+      .then((data) => {
+        console.log("member fetch:", data);
+        setSanityMembers(data);
+      })
+      .catch(console.error);
+
+    sanityClient
+      .fetch(`
+        *[_type == "publication"]
+        | order(year desc, featured desc, _createdAt desc) {
+          _id,
+          year,
+          authors,
+          title,
+          journal,
+          volumePages,
+          doi,
+          featured,
+          authorRole
+        }
+      `)
+      .then(setSanityPublications)
+      .catch((error) => {
+        console.error("Publication fetch error:", error);
+      });
+
+    sanityClient
+      .fetch(`
+        *[_type == "profile"][0] {
+          titleEn,
+          titleKo,
+          introEn,
+          introKo,
+          highlightsEn,
+          highlightsKo,
+          education,
+          keywords,
+          "photoUrl": photo.asset->url
+        }
+      `)
+      .then(setSanityProfile)
+      .catch(console.error);
   }, []);
 
-  sanityClient
-  .fetch(`*[_type == "member"]{
-    _id,
-    nameKo,
-    nameEn,
-    role,
-    degree,
-    bioEn,
-    bioKo,
-    email,
-    order,
-    "photoUrl": photo.asset->url
-  }`)
-  .then((data) => {
-    console.log("member fetch:", data);
-    setSanityMembers(data);
-  })
-  .catch(console.error);
+  console.log("sanityMembers:", sanityMembers);
 
-  sanityClient
-    .fetch(`*[_type == "publication"] | order(year desc, featured desc, _createdAt desc) {
-     _id,
-     year,
-     authors,
-     title,
-     journal,
-     volumePages,
-     doi,
-     featured,
-     authorRole
-    }`)
-
-    .then(setSanityPublications)
-    .catch((error) => {
-     console.error("Publication fetch error:", error);
-    });
-
-  sanityClient
-    .fetch(`*[_type == "profile"][0] {
-      titleEn, titleKo, introEn, introKo,
-      highlightsEn, highlightsKo, education, keywords,
-      "photoUrl": photo.asset->url
-    }`)
-    .then(setSanityProfile)
-    .catch(console.error);
-}, []);
-console.log("sanityMembers:", sanityMembers);
   const t = {
-  ...copy[lang],
+    ...copy[lang],
 
-  newsItems:
-sanityNews.length > 0
-  ? sanityNews.map((item) => ({
-      _id: item._id,
-      date: item.date,
-      category: item.category,
+    newsItems:
+      sanityNews.length > 0
+        ? sanityNews.map((item) => ({
+            _id: item._id,
+            date: item.date,
+            category: item.category,
 
-      title: lang === "ko" ? item.titleKo : item.titleEn,
-      text: lang === "ko" ? item.textKo : item.textEn,
+            title: lang === "ko" ? item.titleKo : item.titleEn,
+            text: lang === "ko" ? item.textKo : item.textEn,
 
-      titleKo: item.titleKo,
-      titleEn: item.titleEn,
+            titleKo: item.titleKo,
+            titleEn: item.titleEn,
 
-      detailTextKo: item.detailTextKo,
-      detailTextEn: item.detailTextEn,
+            detailTextKo: item.detailTextKo,
+            detailTextEn: item.detailTextEn,
 
-      imageUrl: item.imageUrl,
-      link: item.link,
-    }))
-  : copy[lang].newsItems,
+            imageUrl: item.imageUrl,
+            link: item.link,
+          }))
+        : copy[lang].newsItems,
 
   publications:
      sanityPublications.length > 0

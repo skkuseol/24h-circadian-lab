@@ -422,22 +422,219 @@ function runSmokeTests() {
 runSmokeTests();
 
 function AnimatedWave({ theme }) {
-  const points = Array.from({ length: 80 }, (_, i) => i);
+  const width = 1400;
+  const height = 620;
+
+  // 화면에 두 번 정도 반복되도록 0~48 h 범위 생성
+  const hours = Array.from({ length: 193 }, (_, i) => i * 0.25);
+
+  // -----------------------------
+  // Process C: circadian sinusoid
+  // -----------------------------
+  const processC = hours.map((t) => {
+    // 약 24시간 주기, 위상은 시각적으로 보기 좋게 조정
+    const phase = -5;
+    const amplitude = 78;
+    const baseline = 315;
+
+    const value =
+      baseline -
+      amplitude * Math.sin((2 * Math.PI * (t - phase)) / 24);
+
+    return { t, value };
+  });
+
+  // -----------------------------------
+  // Process S: homeostatic sleep pressure
+  // wake = exponential rise
+  // sleep = exponential decay
+  // -----------------------------------
+  const processS = hours.map((t) => {
+    // 예시:
+    // wake: 07:00–23:00
+    // sleep: 23:00–07:00
+    const localHour = ((t % 24) + 24) % 24;
+
+    const upper = 430;
+    const lower = 175;
+
+    const tauWake = 17.5;
+    const tauSleep = 4.2;
+
+    let s;
+
+    if (localHour >= 7 && localHour < 23) {
+      // wake 시작 시점에서 낮은 수준 → upper asymptote로 상승
+      const wakeTime = localHour - 7;
+      const startWake = 205;
+
+      s =
+        upper -
+        (upper - startWake) * Math.exp(-wakeTime / tauWake);
+    } else {
+      // sleep 시작 시점에서 높은 수준 → lower asymptote로 감소
+      const sleepTime =
+        localHour >= 23
+          ? localHour - 23
+          : localHour + 1;
+
+      const startSleep = 385;
+
+      s =
+        lower +
+        (startSleep - lower) * Math.exp(-sleepTime / tauSleep);
+    }
+
+    return {
+      t,
+      value: height - s,
+    };
+  });
+
+  const toPath = (points) =>
+    points
+      .map((point, index) => {
+        const x = (point.t / 48) * width;
+        const y = point.value;
+
+        return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+      })
+      .join(" ");
+
+  const pathC = toPath(processC);
+  const pathS = toPath(processS);
+
   return (
-    <div className={`absolute inset-0 overflow-hidden ${theme === "night" ? "opacity-40" : "opacity-25"}`}>
-      <svg className="absolute bottom-0 left-0 h-full w-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
-        {[0, 1, 2].map((layer) => (
-          <motion.path
-            key={layer}
-            d={"M 0 300 " + points.map((p) => `L ${p * 16} ${300 + Math.sin(p / 3 + layer) * (25 + layer * 16)}`).join(" ")}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.4 + layer}
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 2.8 + layer, repeat: Infinity, repeatType: "reverse" }}
-          />
-        ))}
+    <div
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${
+        theme === "night" ? "opacity-45" : "opacity-30"
+      }`}
+    >
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="processSGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop
+              offset="0%"
+              stopColor={theme === "night" ? "#67e8f9" : "#f59e0b"}
+              stopOpacity="0.15"
+            />
+            <stop
+              offset="50%"
+              stopColor={theme === "night" ? "#a5b4fc" : "#fb923c"}
+              stopOpacity="0.9"
+            />
+            <stop
+              offset="100%"
+              stopColor={theme === "night" ? "#67e8f9" : "#38bdf8"}
+              stopOpacity="0.15"
+            />
+          </linearGradient>
+
+          <linearGradient id="processCGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop
+              offset="0%"
+              stopColor={theme === "night" ? "#c4b5fd" : "#38bdf8"}
+              stopOpacity="0.10"
+            />
+            <stop
+              offset="50%"
+              stopColor={theme === "night" ? "#e0e7ff" : "#f59e0b"}
+              stopOpacity="0.70"
+            />
+            <stop
+              offset="100%"
+              stopColor={theme === "night" ? "#c4b5fd" : "#38bdf8"}
+              stopOpacity="0.10"
+            />
+          </linearGradient>
+
+          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Process C */}
+        <motion.path
+          d={pathC}
+          fill="none"
+          stroke="url(#processCGradient)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#softGlow)"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{
+            pathLength: 1,
+            opacity: [0.25, 0.7, 0.25],
+            x: [0, -35, 0],
+          }}
+          transition={{
+            pathLength: { duration: 2.2 },
+            opacity: {
+              duration: 9,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+            x: {
+              duration: 18,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+          }}
+        />
+
+        {/* Process S */}
+        <motion.path
+          d={pathS}
+          fill="none"
+          stroke="url(#processSGradient)"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#softGlow)"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{
+            pathLength: 1,
+            opacity: [0.35, 0.9, 0.35],
+            x: [0, 28, 0],
+          }}
+          transition={{
+            pathLength: { duration: 2.8 },
+            opacity: {
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+            x: {
+              duration: 22,
+              repeat: Infinity,
+              ease: "easeInOut",
+            },
+          }}
+        />
+
+        {/* 아주 희미한 24h baseline */}
+        <motion.line
+          x1="0"
+          y1="315"
+          x2={width}
+          y2="315"
+          stroke="currentColor"
+          strokeWidth="0.8"
+          strokeDasharray="8 18"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: theme === "night" ? 0.08 : 0.06 }}
+          transition={{ duration: 1 }}
+        />
       </svg>
     </div>
   );

@@ -422,220 +422,335 @@ function runSmokeTests() {
 runSmokeTests();
 
 function AnimatedWave({ theme }) {
-  const width = 1400;
+  const width = 1600;
   const height = 620;
 
-  // 화면에 두 번 정도 반복되도록 0~48 h 범위 생성
-  const hours = Array.from({ length: 193 }, (_, i) => i * 0.25);
+  // ============================================
+  // Two-Process Model visual parameters
+  // ============================================
 
-  // -----------------------------
-  // Process C: circadian sinusoid
-  // -----------------------------
-  const processC = hours.map((t) => {
-    // 약 24시간 주기, 위상은 시각적으로 보기 좋게 조정
-    const phase = -5;
-    const amplitude = 78;
-    const baseline = 315;
+  const wakeHour = 7;     // 07:00 wake
+  const sleepHour = 23;   // 23:00 sleep
 
-    const value =
-      baseline -
-      amplitude * Math.sin((2 * Math.PI * (t - phase)) / 24);
+  const tauWake = 18;     // Process S accumulation
+  const tauSleep = 4.2;   // Process S dissipation
 
-    return { t, value };
-  });
+  const upper = 1.0;
+  const lower = 0.0;
 
-  // -----------------------------------
-  // Process S: homeostatic sleep pressure
-  // wake = exponential rise
-  // sleep = exponential decay
-  // -----------------------------------
-  const processS = hours.map((t) => {
-    // 예시:
-    // wake: 07:00–23:00
-    // sleep: 23:00–07:00
-    const localHour = ((t % 24) + 24) % 24;
+  // ------------------------------------------------
+  // 먼저 안정된 24-h Process S cycle 계산
+  // ------------------------------------------------
 
-    const upper = 430;
-    const lower = 175;
+  const wakeDuration = sleepHour - wakeHour; // 16 h
+  const sleepDuration = 24 - wakeDuration;   // 8 h
 
-    const tauWake = 17.5;
-    const tauSleep = 4.2;
+  /*
+    Sw = waking 시점의 S
+    Ss = sleep onset 시점의 S
 
-    let s;
+    Ss = upper - (upper - Sw) * exp(-wakeDuration/tauWake)
+    Sw = lower + (Ss - lower) * exp(-sleepDuration/tauSleep)
 
-    if (localHour >= 7 && localHour < 23) {
-      // wake 시작 시점에서 낮은 수준 → upper asymptote로 상승
-      const wakeTime = localHour - 7;
-      const startWake = 205;
+    periodic steady state를 직접 계산
+  */
 
-      s =
+  const ew = Math.exp(-wakeDuration / tauWake);
+  const es = Math.exp(-sleepDuration / tauSleep);
+
+  const wakeStartS =
+    (lower * (1 - es) + upper * es * (1 - ew)) /
+    (1 - ew * es);
+
+  const sleepStartS =
+    upper - (upper - wakeStartS) * ew;
+
+  // ============================================
+  // Process S
+  // ============================================
+
+  function getProcessS(hour) {
+    const h = ((hour % 24) + 24) % 24;
+
+    // -----------------------
+    // WAKE: 07:00 → 23:00
+    // H rises exponentially
+    // -----------------------
+
+    if (h >= wakeHour && h < sleepHour) {
+      const elapsed = h - wakeHour;
+
+      return (
         upper -
-        (upper - startWake) * Math.exp(-wakeTime / tauWake);
-    } else {
-      // sleep 시작 시점에서 높은 수준 → lower asymptote로 감소
-      const sleepTime =
-        localHour >= 23
-          ? localHour - 23
-          : localHour + 1;
-
-      const startSleep = 385;
-
-      s =
-        lower +
-        (startSleep - lower) * Math.exp(-sleepTime / tauSleep);
+        (upper - wakeStartS) *
+          Math.exp(-elapsed / tauWake)
+      );
     }
+
+    // -----------------------
+    // SLEEP: 23:00 → 07:00
+    // H falls exponentially
+    // -----------------------
+
+    let elapsed;
+
+    if (h >= sleepHour) {
+      elapsed = h - sleepHour;
+    } else {
+      elapsed = h + (24 - sleepHour);
+    }
+
+    return (
+      lower +
+      (sleepStartS - lower) *
+        Math.exp(-elapsed / tauSleep)
+    );
+  }
+
+  // ============================================
+  // 반복되는 72시간 생성
+  // ============================================
+
+  const totalHours = 72;
+  const step = 0.1;
+
+  const hours = Array.from(
+    { length: Math.floor(totalHours / step) + 1 },
+    (_, i) => i * step
+  );
+
+  // ============================================
+  // Process S coordinates
+  // ============================================
+
+  const processS = hours.map((t) => {
+    const S = getProcessS(t);
+
+    const baseline = 315;
+    const amplitude = 185;
 
     return {
       t,
-      value: height - s,
+      value: baseline + amplitude / 2 - S * amplitude,
     };
   });
+
+  // ============================================
+  // Process C
+  // ============================================
+
+  const processC = hours.map((t) => {
+    const baseline = 315;
+    const amplitude = 115;
+
+    // circadian phase
+    const phase = 4;
+
+    const C =
+      Math.sin(
+        (2 * Math.PI * (t - phase)) / 24
+      );
+
+    return {
+      t,
+      value: baseline - amplitude * C,
+    };
+  });
+
+  // ============================================
+  // SVG path
+  // ============================================
 
   const toPath = (points) =>
     points
       .map((point, index) => {
-        const x = (point.t / 48) * width;
+        const x = (point.t / totalHours) * width;
         const y = point.value;
 
-        return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+        return `${index === 0 ? "M" : "L"} ${x.toFixed(
+          2
+        )} ${y.toFixed(2)}`;
       })
       .join(" ");
 
-  const pathC = toPath(processC);
   const pathS = toPath(processS);
+  const pathC = toPath(processC);
 
   return (
     <div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${
-        theme === "night" ? "opacity-45" : "opacity-30"
+        theme === "night"
+          ? "opacity-40"
+          : "opacity-25"
       }`}
     >
-      <svg
-        className="absolute inset-0 h-full w-full"
+      <motion.svg
+        className="absolute h-full"
+        style={{
+          width: "300%",
+          left: "0%",
+        }}
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
         aria-hidden="true"
+
+        // 전체 72 h 그래프가 천천히 흘러감
+        animate={{
+          x: ["0%", "-33.333%"],
+        }}
+
+        transition={{
+          duration: 28,
+          repeat: Infinity,
+          ease: "linear",
+        }}
       >
         <defs>
-          <linearGradient id="processSGradient" x1="0" y1="0" x2="1" y2="0">
+
+          {/* Process S gradient */}
+          <linearGradient
+            id="processSGradient"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="0"
+          >
             <stop
               offset="0%"
-              stopColor={theme === "night" ? "#67e8f9" : "#f59e0b"}
-              stopOpacity="0.15"
+              stopColor={
+                theme === "night"
+                  ? "#38bdf8"
+                  : "#f59e0b"
+              }
+              stopOpacity="0.55"
             />
+
             <stop
               offset="50%"
-              stopColor={theme === "night" ? "#a5b4fc" : "#fb923c"}
+              stopColor={
+                theme === "night"
+                  ? "#67e8f9"
+                  : "#fb923c"
+              }
               stopOpacity="0.9"
             />
+
             <stop
               offset="100%"
-              stopColor={theme === "night" ? "#67e8f9" : "#38bdf8"}
-              stopOpacity="0.15"
+              stopColor={
+                theme === "night"
+                  ? "#38bdf8"
+                  : "#f59e0b"
+              }
+              stopOpacity="0.55"
             />
           </linearGradient>
 
-          <linearGradient id="processCGradient" x1="0" y1="0" x2="1" y2="0">
+          {/* Process C gradient */}
+          <linearGradient
+            id="processCGradient"
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="0"
+          >
             <stop
               offset="0%"
-              stopColor={theme === "night" ? "#c4b5fd" : "#38bdf8"}
-              stopOpacity="0.10"
+              stopColor={
+                theme === "night"
+                  ? "#818cf8"
+                  : "#38bdf8"
+              }
+              stopOpacity="0.35"
             />
+
             <stop
               offset="50%"
-              stopColor={theme === "night" ? "#e0e7ff" : "#f59e0b"}
-              stopOpacity="0.70"
+              stopColor={
+                theme === "night"
+                  ? "#c4b5fd"
+                  : "#6366f1"
+              }
+              stopOpacity="0.75"
             />
+
             <stop
               offset="100%"
-              stopColor={theme === "night" ? "#c4b5fd" : "#38bdf8"}
-              stopOpacity="0.10"
+              stopColor={
+                theme === "night"
+                  ? "#818cf8"
+                  : "#38bdf8"
+              }
+              stopOpacity="0.35"
             />
           </linearGradient>
 
-          <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter
+            id="twoProcessGlow"
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
+            <feGaussianBlur
+              stdDeviation="3"
+              result="blur"
+            />
+
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
         </defs>
 
-        {/* Process C */}
-        <motion.path
+        {/* =================================
+            PROCESS C
+        ================================= */}
+
+        <path
           d={pathC}
           fill="none"
           stroke="url(#processCGradient)"
           strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter="url(#softGlow)"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{
-            pathLength: 1,
-            opacity: [0.25, 0.7, 0.25],
-            x: [0, -35, 0],
-          }}
-          transition={{
-            pathLength: { duration: 2.2 },
-            opacity: {
-              duration: 9,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-            x: {
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-          }}
+          filter="url(#twoProcessGlow)"
         />
 
-        {/* Process S */}
-        <motion.path
+        {/* =================================
+            PROCESS S / H
+        ================================= */}
+
+        <path
           d={pathS}
           fill="none"
           stroke="url(#processSGradient)"
           strokeWidth="3.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter="url(#softGlow)"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{
-            pathLength: 1,
-            opacity: [0.35, 0.9, 0.35],
-            x: [0, 28, 0],
-          }}
-          transition={{
-            pathLength: { duration: 2.8 },
-            opacity: {
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-            x: {
-              duration: 22,
-              repeat: Infinity,
-              ease: "easeInOut",
-            },
-          }}
+          filter="url(#twoProcessGlow)"
         />
 
-        {/* 아주 희미한 24h baseline */}
-        <motion.line
+        {/* subtle baseline */}
+
+        <line
           x1="0"
           y1="315"
           x2={width}
           y2="315"
           stroke="currentColor"
-          strokeWidth="0.8"
-          strokeDasharray="8 18"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: theme === "night" ? 0.08 : 0.06 }}
-          transition={{ duration: 1 }}
+          strokeWidth="0.7"
+          strokeDasharray="10 20"
+          opacity={
+            theme === "night"
+              ? 0.08
+              : 0.05
+          }
         />
-      </svg>
+
+      </motion.svg>
     </div>
   );
 }

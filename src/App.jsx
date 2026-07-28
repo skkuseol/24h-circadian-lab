@@ -541,11 +541,11 @@ function AnimatedWave({ theme }) {
 
   const processC = hours.map((t) => {
     const baseline = 315;
-    const amplitude = 115;
+    const amplitude = 110;
 
   // S와 반대 방향의 24시간 circadian oscillation
   // 밤에는 상승하고 낮에는 하강하도록 위상 설정
-    const phase = 17;
+    const phase = 11;
 
     const C =
       Math.sin(

@@ -543,17 +543,18 @@ function AnimatedWave({ theme }) {
     const baseline = 315;
     const amplitude = 115;
 
-    // circadian phase
-    const phase = 4;
+  // S와 반대 방향의 24시간 circadian oscillation
+  // 밤에는 상승하고 낮에는 하강하도록 위상 설정
+    const phase = 17;
 
     const C =
       Math.sin(
-        (2 * Math.PI * (t - phase)) / 24
-      );
+       (2 * Math.PI * (t - phase)) / 24
+     );
 
     return {
-      t,
-      value: baseline - amplitude * C,
+     t,
+     value: baseline - amplitude * C,
     };
   });
 

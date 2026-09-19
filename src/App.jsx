@@ -1216,27 +1216,94 @@ function ProfilePage({ t, s, theme, setPage }) {
     </PageShell>
   );
 }
-function MemberProfilePage({ member, t, s, theme, setPage, lang }) {
+function MemberProfilePage({
+  member,
+  t,
+  s,
+  theme,
+  setPage,
+  lang
+}) {
   if (!member) {
     return (
-      <PageShell label={t.nav.members} title="Member" intro="">
-        <Button type="button" onClick={() => setPage("members")} className={s.button}>
+      <PageShell
+        label={t.nav.members}
+        title="Member"
+        intro=""
+      >
+        <Button
+          type="button"
+          onClick={() => setPage("members")}
+          className={s.button}
+        >
           Back to Members
         </Button>
       </PageShell>
     );
   }
 
+  const isKo = lang === "ko";
+
+  const role =
+    isKo
+      ? member.roleKo || "연구원"
+      : member.roleEn || "Member";
+
+  const researchTopic =
+    isKo
+      ? member.researchTopicKo
+      : member.researchTopicEn;
+
+  const achievements =
+    isKo
+      ? member.achievementsKo
+      : member.achievementsEn;
+
+  const keywords =
+    isKo
+      ? member.keywordsKo
+      : member.keywordsEn;
+
+  const message =
+    isKo
+      ? member.messageKo
+      : member.messageEn;
+
+  const degreeLabels = {
+    bachelor: isKo ? "학사" : "B.S.",
+    master: isKo ? "석사" : "M.S.",
+    doctorate: isKo ? "박사" : "Ph.D.",
+  };
+
   return (
     <PageShell
-      label={member.role || "Member"}
-      title={lang === "ko" ? member.nameKo : member.nameEn}
-      intro={member.degree}
+      label={role}
+      title={isKo ? member.nameKo : member.nameEn}
+      intro={member.email || ""}
     >
       <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
-        <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
+
+        {/* =========================
+            LEFT PROFILE
+        ========================= */}
+
+        <Card
+          className={`rounded-2xl border ${s.card} shadow-xl ${
+            theme === "night"
+              ? "border-cyan-200/20 text-white"
+              : "text-slate-900"
+          }`}
+        >
           <CardContent className="p-6 text-center">
-            <div className={`relative mx-auto mb-5 flex h-72 w-56 items-center justify-center overflow-hidden rounded-3xl border ${theme === "night" ? "border-cyan-200/20 bg-white/10" : "border-amber-200 bg-white/70"}`}>
+
+            <div
+              className={`relative mx-auto mb-6 flex h-72 w-56
+              items-center justify-center overflow-hidden rounded-3xl border ${
+                theme === "night"
+                  ? "border-cyan-200/20 bg-white/10"
+                  : "border-amber-200 bg-white/70"
+              }`}
+            >
               {member.photoUrl ? (
                 <img
                   src={member.photoUrl}
@@ -1245,9 +1312,11 @@ function MemberProfilePage({ member, t, s, theme, setPage, lang }) {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  {theme === "day"
-                    ? <SunIcon className="h-12 w-12" />
-                    : <MoonIcon className="h-12 w-12 text-cyan-200" />}
+                  {theme === "day" ? (
+                    <SunIcon className="h-12 w-12" />
+                  ) : (
+                    <MoonIcon className="h-12 w-12 text-cyan-200" />
+                  )}
                 </div>
               )}
             </div>
@@ -1255,40 +1324,256 @@ function MemberProfilePage({ member, t, s, theme, setPage, lang }) {
             <h3 className="text-2xl font-extrabold">
               {member.nameKo}
             </h3>
+
             <p className="mt-1 text-lg opacity-90">
               {member.nameEn}
             </p>
-            <p className="mt-1 text-sm opacity-70">
-              {member.degree}
-            </p>
-          </CardContent>
-        </Card>
 
-        <Card className={`rounded-2xl border ${s.card} shadow-xl ${theme === "night" ? "text-white border-cyan-200/20" : "text-slate-900"}`}>
-          <CardContent className="p-8">
-            <div className={`mb-4 inline-flex rounded-full px-4 py-2 text-xs font-bold ${s.soft}`}>
-              {member.role || "Member"}
+            <div
+              className={`mt-4 inline-flex rounded-full px-4 py-2
+              text-xs font-bold ${s.soft}`}
+            >
+              {role}
             </div>
 
-            <h3 className="text-3xl font-bold">
-              {lang === "ko" ? member.nameKo : member.nameEn}
-            </h3>
-
-            <p className={`mt-6 leading-8 ${theme === "night" ? "text-indigo-100" : "text-slate-700"}`}>
-              {lang === "ko" ? member.bioKo : member.bioEn}
-            </p>
-
             {member.email && (
-              <p className="mt-6 text-sm opacity-80">
-                Email: {member.email}
-              </p>
+              <a
+                href={`mailto:${member.email}`}
+                className="mt-5 block text-sm opacity-70 hover:opacity-100"
+              >
+                {member.email}
+              </a>
             )}
 
-            <Button type="button" onClick={() => setPage("members")} className={`mt-8 ${s.button}`}>
-              Back to Members
-            </Button>
           </CardContent>
         </Card>
+
+
+        {/* =========================
+            RIGHT PROFILE
+        ========================= */}
+
+        <div className="space-y-6">
+
+          {/* Research Interests */}
+
+          {researchTopic && (
+            <Card
+              className={`rounded-2xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              <CardContent className="p-8">
+
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                  Research Interests
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+                  {isKo ? "연구주제" : "Research Interests"}
+                </h3>
+
+                <p className="mt-5 whitespace-pre-line leading-8 opacity-85">
+                  {researchTopic}
+                </p>
+
+              </CardContent>
+            </Card>
+          )}
+
+
+          {/* Education */}
+
+          {member.education?.length > 0 && (
+            <Card
+              className={`rounded-2xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              <CardContent className="p-8">
+
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                  Education
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+                  {isKo ? "학력" : "Education"}
+                </h3>
+
+                <div className="mt-6 space-y-5">
+
+                  {member.education.map((edu, index) => {
+
+                    const school =
+                      isKo ? edu.schoolKo : edu.schoolEn;
+
+                    const major =
+                      isKo ? edu.majorKo : edu.majorEn;
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-start gap-5"
+                      >
+                        <div
+                          className={`min-w-16 rounded-full px-3 py-1
+                          text-center text-xs font-bold ${s.soft}`}
+                        >
+                          {degreeLabels[edu.degree] || edu.degree}
+                        </div>
+
+                        <div>
+                          {school && (
+                            <p className="font-bold">
+                              {school}
+                            </p>
+                          )}
+
+                          {major && (
+                            <p className="mt-1 text-sm opacity-70">
+                              {major}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+
+
+          {/* Keywords */}
+
+          {keywords?.length > 0 && (
+            <Card
+              className={`rounded-2xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              <CardContent className="p-8">
+
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                  Research Keywords
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+                  {isKo ? "연구 키워드" : "Research Keywords"}
+                </h3>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+
+                  {keywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className={`rounded-full px-4 py-2
+                      text-sm font-semibold ${s.soft}`}
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+
+
+          {/* Achievements */}
+
+          {achievements?.length > 0 && (
+            <Card
+              className={`rounded-2xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              <CardContent className="p-8">
+
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                  Research Achievements
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+                  {isKo ? "연구업적" : "Research Achievements"}
+                </h3>
+
+                <div className="mt-6 space-y-4">
+
+                  {achievements.map((item, index) => (
+                    <div
+                      key={`${item}-${index}`}
+                      className="flex items-start gap-4"
+                    >
+                      <span
+                        className={`flex h-7 w-7 shrink-0 items-center
+                        justify-center rounded-full text-xs font-bold ${s.soft}`}
+                      >
+                        {index + 1}
+                      </span>
+
+                      <p className="leading-7 opacity-85">
+                        {item}
+                      </p>
+                    </div>
+                  ))}
+
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+
+
+          {/* Research Vision */}
+
+          {message && (
+            <Card
+              className={`rounded-2xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              <CardContent className="p-8">
+
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                  Research Vision
+                </p>
+
+                <h3 className="mt-3 text-2xl font-bold">
+                  {isKo ? "연구 포부" : "Research Vision"}
+                </h3>
+
+                <p className="mt-5 whitespace-pre-line text-lg italic leading-8 opacity-85">
+                  “{message}”
+                </p>
+
+              </CardContent>
+            </Card>
+          )}
+
+
+          <Button
+            type="button"
+            onClick={() => setPage("members")}
+            className={s.button}
+          >
+            {isKo ? "← 구성원으로 돌아가기" : "← Back to Members"}
+          </Button>
+
+        </div>
       </div>
     </PageShell>
   );
@@ -1730,23 +2015,23 @@ export default function LabWebsite() {
 
     sanityClient
       .fetch(`
-        *[_type == "publication"]
-        | order(year desc, featured desc, _createdAt desc) {
-          _id,
+       *[_type == "publication"]
+       | order(year desc, featured desc, _createdAt desc) {
+         _id,
           year,
-          authors,
+         authors,
           title,
           journal,
           volumePages,
           doi,
           featured,
           authorRole
-        }
-      `)
-      .then(setSanityPublications)
+       }
+       `)
+     .then(setSanityPublications)
       .catch((error) => {
-        console.error("Publication fetch error:", error);
-      });
+         console.error("Publication fetch error:", error);
+     });
 
     sanityClient
       .fetch(`

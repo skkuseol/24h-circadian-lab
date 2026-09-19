@@ -1683,19 +1683,44 @@ export default function LabWebsite() {
       .catch(console.error);
 
     sanityClient
-      .fetch(`
-        *[_type == "member"] | order(order asc) {
-          _id,
-          nameKo,
-          nameEn,
-          role,
-          degree,
-          bioEn,
-          bioKo,
-          email,
-          order,
-          "photoUrl": photo.asset->url
-        }
+  .fetch(`
+    *[_type == "member"] | order(order asc) {
+      _id,
+
+      nameKo,
+      nameEn,
+
+      roleKo,
+      roleEn,
+
+      education[] {
+        degree,
+        schoolKo,
+        schoolEn,
+        majorKo,
+        majorEn
+      },
+
+      researchTopicKo,
+      researchTopicEn,
+
+      achievementsKo,
+      achievementsEn,
+
+      keywordsKo,
+      keywordsEn,
+
+      messageKo,
+      messageEn,
+
+      email,
+      order,
+
+      "photoUrl": photo.asset->url
+    }
+  `)
+  .then(setSanityMembers)
+  .catch(console.error);
       `)
       .then((data) => {
         console.log("member fetch:", data);

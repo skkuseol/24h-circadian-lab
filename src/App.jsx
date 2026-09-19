@@ -1967,45 +1967,42 @@ export default function LabWebsite() {
       .then(setSanityNews)
       .catch(console.error);
 
+        // Members
     sanityClient
-  .fetch(`
-    *[_type == "member"] | order(order asc) {
-      _id,
+      .fetch(`
+        *[_type == "member"] | order(order asc) {
+          _id,
+          nameKo,
+          nameEn,
 
-      nameKo,
-      nameEn,
+          roleKo,
+          roleEn,
 
-      roleKo,
-      roleEn,
+          education[] {
+            degree,
+            schoolKo,
+            schoolEn,
+            majorKo,
+            majorEn
+          },
 
-      education[] {
-        degree,
-        schoolKo,
-        schoolEn,
-        majorKo,
-        majorEn
-      },
+          researchTopicKo,
+          researchTopicEn,
 
-      researchTopicKo,
-      researchTopicEn,
+          achievementsKo,
+          achievementsEn,
 
-      achievementsKo,
-      achievementsEn,
+          keywordsKo,
+          keywordsEn,
 
-      keywordsKo,
-      keywordsEn,
+          messageKo,
+          messageEn,
 
-      messageKo,
-      messageEn,
+          email,
+          order,
 
-      email,
-      order,
-
-      "photoUrl": photo.asset->url
-    }
-  `)
-  .then(setSanityMembers)
-  .catch(console.error);
+          "photoUrl": photo.asset->url
+        }
       `)
       .then((data) => {
         console.log("member fetch:", data);
@@ -2013,26 +2010,28 @@ export default function LabWebsite() {
       })
       .catch(console.error);
 
+    // Publications
     sanityClient
       .fetch(`
-       *[_type == "publication"]
-       | order(year desc, featured desc, _createdAt desc) {
-         _id,
+        *[_type == "publication"]
+        | order(year desc, featured desc, _createdAt desc) {
+          _id,
           year,
-         authors,
+          authors,
           title,
           journal,
           volumePages,
           doi,
           featured,
           authorRole
-       }
-       `)
-     .then(setSanityPublications)
+        }
+      `)
+      .then(setSanityPublications)
       .catch((error) => {
-         console.error("Publication fetch error:", error);
-     });
+        console.error("Publication fetch error:", error);
+      });
 
+    // PI Profile
     sanityClient
       .fetch(`
         *[_type == "profile"][0] {
@@ -2049,6 +2048,7 @@ export default function LabWebsite() {
       `)
       .then(setSanityProfile)
       .catch(console.error);
+
   }, []);
 
   console.log("sanityMembers:", sanityMembers);

@@ -87,6 +87,7 @@ const copy = {
     home: "Home",
     nav: {
       members: "Members",
+      activities: "Activities",
       collaborators: "Collaborators",
       platform: "Platform",
       publications: "Publications",
@@ -223,6 +224,7 @@ const copy = {
     home: "홈",
     nav: {
       members: "구성원",
+      activities: "활동",
       collaborators: "협력",
       platform: "플랫폼",
       publications: "논문/프로젝트",
@@ -378,7 +380,7 @@ const themes = {
   }
 };
 
-const pages = ["members", "collaborators", "platform", "publications", "contact"];
+const pages = ["members", "activities", "collaborators", "platform", "publications", "contact"];
 
 function IconBase({ children, className = "" }) {
   return (
@@ -1578,6 +1580,205 @@ function MemberProfilePage({
     </PageShell>
   );
 }
+function ActivitiesPage({
+  activities,
+  s,
+  theme,
+  lang,
+  setPage,
+  setSelectedActivity,
+}) {
+  return (
+    <PageShell
+      label="Activities"
+      title={lang === "ko" ? "연구실 활동" : "Life at Our Lab"}
+      intro={
+        lang === "ko"
+          ? "학회, 연구, 세미나, 공동연구와 연구실의 다양한 순간을 기록합니다."
+          : "A collection of conferences, research, seminars, collaborations, and moments from our lab."
+      }
+    >
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {activities.map((item) => (
+          <motion.button
+            key={item._id}
+            type="button"
+            whileHover={{ y: -6 }}
+            onClick={() => {
+              setSelectedActivity(item);
+              setPage("activityDetail");
+            }}
+            className="text-left"
+          >
+            <Card
+              className={`h-full overflow-hidden rounded-3xl border ${s.card} shadow-xl ${
+                theme === "night"
+                  ? "border-cyan-200/20 text-white"
+                  : "text-slate-900"
+              }`}
+            >
+              {item.coverImageUrl && (
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={item.coverImageUrl}
+                    alt={lang === "ko" ? item.titleKo : item.titleEn}
+                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                  />
+                </div>
+              )}
+
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-bold ${s.soft}`}
+                  >
+                    {item.category || "Activity"}
+                  </span>
+
+                  <span className="text-xs opacity-60">
+                    {item.date}
+                  </span>
+                </div>
+
+                <h3 className="mt-5 text-xl font-extrabold leading-7">
+                  {lang === "ko" ? item.titleKo : item.titleEn}
+                </h3>
+
+                {(item.locationKo || item.locationEn) && (
+                  <p className="mt-2 text-sm opacity-60">
+                    {lang === "ko"
+                      ? item.locationKo
+                      : item.locationEn}
+                  </p>
+                )}
+
+                <p className="mt-4 line-clamp-3 text-sm leading-6 opacity-80">
+                  {lang === "ko"
+                    ? item.descriptionKo
+                    : item.descriptionEn}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.button>
+        ))}
+      </div>
+    </PageShell>
+  );
+}
+function ActivityDetailPage({
+  activity,
+  s,
+  theme,
+  lang,
+  setPage,
+}) {
+  if (!activity) {
+    return (
+      <PageShell
+        label="Activities"
+        title="Activity"
+        intro=""
+      >
+        <Button
+          type="button"
+          onClick={() => setPage("activities")}
+          className={s.button}
+        >
+          ← Back to Activities
+        </Button>
+      </PageShell>
+    );
+  }
+
+  const title =
+    lang === "ko"
+      ? activity.titleKo
+      : activity.titleEn;
+
+  const description =
+    lang === "ko"
+      ? activity.descriptionKo
+      : activity.descriptionEn;
+
+  const location =
+    lang === "ko"
+      ? activity.locationKo
+      : activity.locationEn;
+
+  return (
+    <PageShell
+      label={activity.category || "Activity"}
+      title={title}
+      intro={`${activity.date || ""}${location ? ` · ${location}` : ""}`}
+    >
+      {activity.coverImageUrl && (
+        <div className="overflow-hidden rounded-3xl">
+          <img
+            src={activity.coverImageUrl}
+            alt={title}
+            className="max-h-[650px] w-full object-cover"
+          />
+        </div>
+      )}
+
+      {description && (
+        <Card
+          className={`mt-8 rounded-3xl border ${s.card} shadow-xl ${
+            theme === "night"
+              ? "border-cyan-200/20 text-white"
+              : "text-slate-900"
+          }`}
+        >
+          <CardContent className="p-8 md:p-10">
+            <p className="whitespace-pre-line text-base leading-8 opacity-85">
+              {description}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {activity.gallery?.length > 0 && (
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          {activity.gallery.map((photo, index) => (
+            <div
+              key={index}
+              className="overflow-hidden rounded-2xl"
+            >
+              <img
+                src={photo.imageUrl}
+                alt={
+                  lang === "ko"
+                    ? photo.captionKo || title
+                    : photo.captionEn || title
+                }
+                className="h-auto w-full object-cover"
+              />
+
+              {(photo.captionKo || photo.captionEn) && (
+                <p className="mt-2 text-sm opacity-60">
+                  {lang === "ko"
+                    ? photo.captionKo
+                    : photo.captionEn}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button
+        type="button"
+        onClick={() => setPage("activities")}
+        className={`mt-10 ${s.button}`}
+      >
+        {lang === "ko"
+          ? "← 연구실 활동으로"
+          : "← Back to Activities"}
+      </Button>
+    </PageShell>
+  );
+}
+
 function PlatformPage({ t, s, theme }) {
   return (
     <PageShell label={t.platformLabel} title={t.platformTitle} intro={t.platformIntro}>
@@ -1924,10 +2125,12 @@ export default function LabWebsite() {
 
   const [sanityNews, setSanityNews] = useState([]);
   const [sanityMembers, setSanityMembers] = useState([]);
+  const [sanityActivities, setSanityActivities] = useState([]);
   const [sanityPublications, setSanityPublications] = useState([]);
   const [sanityProfile, setSanityProfile] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
 
   // Google Analytics 초기화
   useEffect(() => {
@@ -2009,6 +2212,38 @@ export default function LabWebsite() {
         setSanityMembers(data);
       })
       .catch(console.error);
+
+
+    // Activities
+    sanityClient
+      .fetch(`
+       *[_type == "activity"]
+       | order(date desc, order asc, _createdAt desc) {
+         _id,
+         date,
+         category,
+         titleKo,
+         titleEn,
+          descriptionKo,
+          descriptionEn,
+          locationKo,
+         locationEn,
+          featured,
+         order,
+
+          "coverImageUrl": coverImage.asset->url,
+
+          gallery[] {
+           captionKo,
+           captionEn,
+           "imageUrl": asset->url
+          }
+        }
+     `)
+      .then(setSanityActivities)
+     .catch((error) => {
+       console.error("Activity fetch error:", error);
+      });
 
     // Publications
     sanityClient
@@ -2150,6 +2385,30 @@ export default function LabWebsite() {
     lang={lang}
   />
 );
+if (page === "activities") {
+  return (
+    <ActivitiesPage
+      activities={sanityActivities}
+      s={s}
+      theme={theme}
+      lang={lang}
+      setPage={setPage}
+      setSelectedActivity={setSelectedActivity}
+    />
+  );
+}
+
+if (page === "activityDetail") {
+  return (
+    <ActivityDetailPage
+      activity={selectedActivity}
+      s={s}
+      theme={theme}
+      lang={lang}
+      setPage={setPage}
+    />
+  );
+}
     if (page === "collaborators") return <CollaboratorsPage t={t} s={s} theme={theme} />;
     if (page === "platform") return <PlatformPage t={t} s={s} theme={theme} />;
     if (page === "publications") return <PublicationsPage t={t} s={s} theme={theme} />;
